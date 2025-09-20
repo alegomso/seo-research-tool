@@ -20,7 +20,7 @@
   "devDependencies": {
     "@seo-portal/eslint-config": "workspace:*",
     "@seo-portal/tsconfig": "workspace:*",
-    "eslint": "^8.0.0",
+    "eslint": "^9.36.0",
     "typescript": "^5.2.2"
   }
 }
