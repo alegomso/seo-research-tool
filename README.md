@@ -1,5 +1,9 @@
 # SEO Research Portal
 
+![CI](https://github.com/alegomso/seo-research-tool/actions/workflows/ci.yml/badge.svg)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![pnpm](https://img.shields.io/badge/maintained%20with-pnpm-cc00ff.svg)](https://pnpm.io/)
+
 Internal SEO Research Portal powered by DataForSEO APIs and AI-assisted analysis.
 
 ## Overview

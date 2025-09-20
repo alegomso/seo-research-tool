@@ -38,8 +38,17 @@ OPENAI_API_KEY           # Your OpenAI API key (sk-...)
 
 #### Authentication Secrets
 ```
-JWT_SECRET               # Generate: openssl rand -base64 32
-NEXTAUTH_SECRET          # Generate: openssl rand -base64 32
+JWT_SECRET               # Example: 703f99298399aeac63cb2635f4bb78c55d71045d76fa1f81b888e05174d5192a
+NEXTAUTH_SECRET          # Example: cdf2ae3cca534838028d9bc0369f2dd4eadeb54bc976f2882a9148319d8775c5
+```
+
+**Generate your own secure keys:**
+```bash
+# Method 1: Using Node.js crypto
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+
+# Method 2: Using OpenSSL
+openssl rand -base64 32
 ```
 
 #### Optional: Google OAuth

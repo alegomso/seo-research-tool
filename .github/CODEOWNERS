@@ -1,0 +1,19 @@
+# Default owners
+*                @alegomso
+
+# App areas
+apps/web/        @alegomso
+apps/server/     @alegomso
+
+# Packages
+packages/*       @alegomso
+
+# Infrastructure & Config
+infra/           @alegomso
+.github/         @alegomso
+*.yml            @alegomso
+*.yaml           @alegomso
+*.json           @alegomso
+
+# Documentation
+*.md             @alegomso
