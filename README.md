@@ -83,51 +83,79 @@ pnpm health-monitor     # Continuous monitoring
 pnpm generate-secrets   # Generate secure keys
 ```
 
-## Getting Started (Development)
+## 🚀 Quick Start
 
 ### Prerequisites
+- **Node.js 18+** and **pnpm 8+** ([get pnpm](https://pnpm.io/installation))
+- **Docker Desktop** ([download here](https://docker.com/products/docker-desktop))
+- **DataForSEO Account** ([sign up](https://dataforseo.com) - $20/month minimum)
+- **OpenAI API Key** ([get key](https://platform.openai.com) - ~$10-50/month)
 
-- Node.js 18+ and pnpm 8+
-- Docker and Docker Compose
-- DataForSEO API account
-- OpenAI API account
+### Installation & Setup
 
-### Installation
-
-1. **Clone the repository**
+1. **Clone and install**
    ```bash
-   git clone <repository-url>
-   cd seo-portal
-   ```
-
-2. **Install dependencies**
-   ```bash
+   git clone https://github.com/alegomso/seo-research-tool.git
+   cd seo-research-tool
    pnpm install
    ```
 
-3. **Set up environment variables**
+2. **Configure environment**
    ```bash
    cp .env.example .env
-   # Edit .env with your API keys and configuration
+   # Edit .env with your API keys (see configuration below)
    ```
 
-4. **Start development services**
+3. **Start services and run**
    ```bash
    # Start PostgreSQL and Redis
    pnpm docker:dev
 
-   # Run database migrations (in another terminal)
+   # Initialize database
    pnpm db:migrate
 
    # Start development servers
    pnpm dev
    ```
 
-5. **Access the application**
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:3001
-   - API Documentation: http://localhost:3001/docs
-   - Database Admin: http://localhost:8080
+4. **Access your portal**
+   - 🌐 **Frontend**: http://localhost:3000
+   - 🔧 **Backend API**: http://localhost:3001
+   - 📚 **API Docs**: http://localhost:3001/docs
+   - 🗄️ **Database Admin**: http://localhost:8080
+
+### Required Configuration
+
+Edit your `.env` file with these required values:
+
+```bash
+# DataForSEO API (Required)
+DATAFORSEO_LOGIN="your-dataforseo-username"
+DATAFORSEO_PASSWORD="your-dataforseo-password"
+
+# OpenAI API (Required)
+OPENAI_API_KEY="sk-your-openai-api-key"
+
+# JWT Secrets (Required - generate secure keys)
+JWT_SECRET="your-super-secret-jwt-key-change-this-in-production"
+NEXTAUTH_SECRET="your-nextauth-secret-change-this-in-production"
+
+# Optional: Google OAuth for SSO
+GOOGLE_CLIENT_ID="your-google-oauth-client-id"
+GOOGLE_CLIENT_SECRET="your-google-oauth-client-secret"
+```
+
+### Build & Deploy
+
+```bash
+# Build for production
+pnpm build
+
+# Health check
+pnpm health-check
+
+# Deploy (see DEPLOYMENT-GUIDE.md for platforms)
+```
 
 ### Environment Configuration
 

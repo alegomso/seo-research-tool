@@ -4,7 +4,11 @@
       "Bash(claude mcp:*)",
       "Read(//c/Users/Alejandro Gómez/OneDrive/Claude Desktop Memory/**)",
       "Bash(git init:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git remote add:*)",
+      "Bash(git config:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []
