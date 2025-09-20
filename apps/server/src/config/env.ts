@@ -54,16 +54,9 @@ const envSchema = z.object({
 
 export type EnvConfig = z.infer<typeof envSchema>;
 
-let env: EnvConfig;
-
-export function getEnvConfig(): EnvConfig {
-  if (env) {
-    return env;
-  }
-
+function validateEnv(): EnvConfig {
   try {
-    env = envSchema.parse(process.env);
-    return env;
+    return envSchema.parse(process.env);
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.error('❌ Environment validation failed:');
@@ -74,4 +67,5 @@ export function getEnvConfig(): EnvConfig {
   }
 }
 
-export default getEnvConfig;
+// Export the validated environment configuration
+export const env = validateEnv();

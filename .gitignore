@@ -17,6 +17,17 @@ build/
 .next/
 .turbo/
 
+# TypeScript build artifacts
+apps/server/src/**/*.js
+apps/server/src/**/*.d.ts
+apps/server/src/**/*.d.ts.map
+apps/web/*.tsbuildinfo
+apps/web/next-env.d.ts
+
+# But allow config files
+!apps/server/src/**/*.config.js
+!apps/web/*.config.js
+
 # Cache directories
 .cache/
 .temp/

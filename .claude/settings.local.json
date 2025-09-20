@@ -13,7 +13,14 @@
       "Bash(pnpm install:*)",
       "Bash(npm install:*)",
       "Bash(pnpm typecheck:*)",
-      "Bash(pnpm:*)"
+      "Bash(pnpm:*)",
+      "mcp__github-server__list_commits",
+      "mcp__github-server__get_file_contents",
+      "mcp__github-server__create_or_update_file",
+      "mcp__github-server__create_branch",
+      "Bash(git rm:*)",
+      "Bash(find:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []
