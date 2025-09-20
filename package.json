@@ -30,7 +30,7 @@
     "generate-secrets": "tsx scripts/validate-env.ts --generate-secrets"
   },
   "devDependencies": {
-    "@turbo/gen": "^1.10.12",
+    "@turbo/gen": "^2.5.6",
     "prettier": "^3.0.0",
     "turbo": "^1.10.12",
     "tsx": "^4.6.0",
