@@ -11,7 +11,9 @@
       "Bash(git push:*)",
       "WebFetch(domain:github.com)",
       "Bash(pnpm install:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(pnpm typecheck:*)",
+      "Bash(pnpm:*)"
     ],
     "deny": [],
     "ask": []
