@@ -1,0 +1,34 @@
+[build]
+builder = "NIXPACKS"
+
+[[services]]
+name = "seo-portal-server"
+source = "apps/server"
+
+[services.build]
+buildCommand = "pnpm install && pnpm build"
+startCommand = "pnpm start"
+
+[services.variables]
+NODE_ENV = "production"
+PORT = "3001"
+
+[[services]]
+name = "seo-portal-web"
+source = "apps/web"
+
+[services.build]
+buildCommand = "pnpm install && pnpm build"
+startCommand = "pnpm start"
+
+[services.variables]
+NODE_ENV = "production"
+PORT = "3000"
+
+[[services]]
+name = "postgres"
+plugin = "postgresql"
+
+[[services]]
+name = "redis"
+plugin = "redis"

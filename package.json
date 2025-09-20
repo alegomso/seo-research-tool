@@ -1,0 +1,48 @@
+{
+  "name": "seo-portal",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Internal SEO Research Portal - DataForSEO API + AI-assisted analysis",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "clean": "turbo run clean",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,md}\"",
+    "docker:dev": "docker-compose -f infra/docker/docker-compose.dev.yml up -d",
+    "docker:down": "docker-compose -f infra/docker/docker-compose.dev.yml down",
+    "docker:prod": "docker-compose -f infra/docker/docker-compose.prod.yml up -d",
+    "docker:prod:down": "docker-compose -f infra/docker/docker-compose.prod.yml down",
+    "db:migrate": "pnpm --filter=server db:migrate",
+    "db:seed": "pnpm --filter=server db:seed",
+    "db:reset": "pnpm --filter=server db:reset",
+    "setup": "tsx scripts/setup-wizard.ts",
+    "validate-env": "tsx scripts/validate-env.ts",
+    "health-check": "tsx scripts/health-check.ts",
+    "health-monitor": "tsx scripts/health-check.ts --continuous",
+    "generate-secrets": "tsx scripts/validate-env.ts --generate-secrets"
+  },
+  "devDependencies": {
+    "@turbo/gen": "^1.10.12",
+    "prettier": "^3.0.0",
+    "turbo": "^1.10.12",
+    "tsx": "^4.6.0",
+    "chalk": "^5.3.0",
+    "inquirer": "^9.2.0",
+    "@types/inquirer": "^9.0.0",
+    "zod": "^3.22.0",
+    "dotenv": "^16.3.0"
+  },
+  "packageManager": "pnpm@8.6.10",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}

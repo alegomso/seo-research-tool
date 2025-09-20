@@ -1,0 +1,68 @@
+services:
+  # PostgreSQL Database
+  - type: pserv
+    name: seo-portal-postgres
+    env: docker
+    plan: starter
+    dockerfilePath: ./infra/docker/Dockerfile.postgres
+    disk:
+      name: postgres-data
+      mountPath: /var/lib/postgresql/data
+      sizeGB: 10
+
+  # Redis Cache
+  - type: redis
+    name: seo-portal-redis
+    plan: starter
+    maxmemoryPolicy: allkeys-lru
+
+  # Backend API Server
+  - type: web
+    name: seo-portal-server
+    env: node
+    plan: starter
+    buildCommand: cd apps/server && pnpm install && pnpm build
+    startCommand: cd apps/server && pnpm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: DATABASE_URL
+        fromService:
+          type: pserv
+          name: seo-portal-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: seo-portal-redis
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: NEXTAUTH_SECRET
+        generateValue: true
+    healthCheckPath: /health
+
+  # Frontend Web Application
+  - type: web
+    name: seo-portal-web
+    env: node
+    plan: starter
+    buildCommand: cd apps/web && pnpm install && pnpm build
+    startCommand: cd apps/web && pnpm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: API_BASE_URL
+        fromService:
+          type: web
+          name: seo-portal-server
+          property: host
+      - key: NEXTAUTH_URL
+        fromService:
+          type: web
+          name: seo-portal-web
+          property: host

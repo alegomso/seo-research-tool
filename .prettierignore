@@ -1,0 +1,14 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+.next/
+
+# Generated files
+*.generated.ts
+*.generated.js
+
+# Logs
+*.log

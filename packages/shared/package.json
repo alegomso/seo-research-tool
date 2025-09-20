@@ -1,0 +1,26 @@
+{
+  "name": "@seo-portal/shared",
+  "version": "0.0.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "eslint src/**/*.ts",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist && rm -rf .turbo"
+  },
+  "dependencies": {
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@seo-portal/eslint-config": "workspace:*",
+    "@seo-portal/tsconfig": "workspace:*",
+    "eslint": "^8.0.0",
+    "typescript": "^5.2.2"
+  }
+}

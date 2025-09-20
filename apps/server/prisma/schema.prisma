@@ -1,0 +1,305 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  role      UserRole @default(MARKETER)
+  ssoSub    String?  @unique @map("sso_sub")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  ownedProjects   Project[] @relation("ProjectOwner")
+  projectMembers  ProjectMember[]
+  queries         Query[]
+  briefs          Brief[]
+  budgets         Budget[]
+
+  // NextAuth.js fields
+  accounts Account[]
+  sessions Session[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  ownerId     String   @map("owner_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  owner     User              @relation("ProjectOwner", fields: [ownerId], references: [id])
+  members   ProjectMember[]
+  queries   Query[]
+  datasets  Dataset[]
+  briefs    Brief[]
+
+  @@map("projects")
+}
+
+model ProjectMember {
+  id        String      @id @default(cuid())
+  projectId String      @map("project_id")
+  userId    String      @map("user_id")
+  role      ProjectRole @default(VIEWER)
+  createdAt DateTime    @default(now()) @map("created_at")
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@map("project_members")
+}
+
+model Query {
+  id         String    @id @default(cuid())
+  projectId  String    @map("project_id")
+  type       QueryType
+  payload    Json      @map("payload_json")
+  status     QueryStatus @default(PENDING)
+  createdBy  String    @map("created_by")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  completedAt DateTime? @map("completed_at")
+
+  // Relations
+  project  Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  creator  User    @relation(fields: [createdBy], references: [id])
+  tasks    Task[]
+  datasets Dataset[]
+
+  @@map("queries")
+}
+
+model Task {
+  id              String     @id @default(cuid())
+  queryId         String     @map("query_id")
+  provider        String     // "dataforseo" or "openai"
+  providerTaskId  String?    @map("provider_task_id")
+  endpoint        String     // e.g., "serp/google/organic", "keywords/google_ads"
+  status          TaskStatus @default(PENDING)
+  costEstimate    Float?     @map("cost_estimate")
+  actualCost      Float?     @map("actual_cost")
+  result          Json?      @map("result_json")
+  error           String?
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+  completedAt     DateTime?  @map("completed_at")
+
+  // Relations
+  query Query @relation(fields: [queryId], references: [id], onDelete: Cascade)
+
+  @@map("tasks")
+}
+
+model Dataset {
+  id        String      @id @default(cuid())
+  projectId String      @map("project_id")
+  queryId   String?     @map("query_id")
+  name      String
+  kind      DatasetKind // "keywords", "serp", "competitors", "backlinks", "onpage"
+  meta      Json        @map("meta_json")
+  data      Json        @map("data_json")
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime    @updatedAt @map("updated_at")
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  query   Query?  @relation(fields: [queryId], references: [id], onDelete: SetNull)
+  briefs  Brief[]
+
+  @@map("datasets")
+}
+
+model Brief {
+  id               String   @id @default(cuid())
+  projectId        String   @map("project_id")
+  sourceDatasetId  String?  @map("source_dataset_id")
+  title            String
+  sections         Json     @map("sections_json")
+  version          Int      @default(1)
+  createdBy        String   @map("created_by")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sourceDataset Dataset? @relation(fields: [sourceDatasetId], references: [id], onDelete: SetNull)
+  creator       User     @relation(fields: [createdBy], references: [id])
+  exports       Export[]
+
+  @@map("briefs")
+}
+
+model Export {
+  id        String     @id @default(cuid())
+  briefId   String     @map("brief_id")
+  format    ExportFormat
+  url       String?
+  status    ExportStatus @default(PENDING)
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  // Relations
+  brief Brief @relation(fields: [briefId], references: [id], onDelete: Cascade)
+
+  @@map("exports")
+}
+
+model Budget {
+  id       String     @id @default(cuid())
+  userId   String?    @map("user_id")
+  role     UserRole?
+  unit     BudgetUnit
+  limit    Float
+  period   BudgetPeriod
+  spent    Float      @default(0)
+  resetAt  DateTime   @map("reset_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("budgets")
+}
+
+model CacheEntry {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     Json
+  ttl       DateTime
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("cache_entries")
+}
+
+// Enums
+enum UserRole {
+  ADMIN
+  ANALYST
+  MARKETER
+}
+
+enum ProjectRole {
+  OWNER
+  EDITOR
+  VIEWER
+}
+
+enum QueryType {
+  KEYWORD_DISCOVERY
+  SERP_SNAPSHOT
+  COMPETITOR_OVERVIEW
+  BACKLINK_CHECK
+  ONPAGE_AUDIT
+  CONTENT_BRIEF
+}
+
+enum QueryStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum TaskStatus {
+  PENDING
+  SUBMITTED
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum DatasetKind {
+  KEYWORDS
+  SERP
+  COMPETITORS
+  BACKLINKS
+  ONPAGE
+  AI_INSIGHTS
+}
+
+enum ExportFormat {
+  PDF
+  CSV
+  GOOGLE_DOCS
+  NOTION
+  MARKDOWN
+}
+
+enum ExportStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum BudgetUnit {
+  USD
+  API_CALLS
+  TOKENS
+}
+
+enum BudgetPeriod {
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
