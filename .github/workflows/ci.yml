@@ -58,6 +58,9 @@ jobs:
           echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/seo_portal_test" >> .env
           echo "REDIS_URL=redis://localhost:6379" >> .env
 
+      - name: Generate Prisma client
+        run: pnpm --filter=server db:generate
+
       - name: Run type checking
         run: pnpm typecheck
 

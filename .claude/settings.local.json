@@ -8,7 +8,10 @@
       "Bash(git commit:*)",
       "Bash(git remote add:*)",
       "Bash(git config:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(pnpm install:*)",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": []
