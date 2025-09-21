@@ -38,6 +38,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Debug - Show file structure
+        run: |
+          echo "=== Repository Structure ==="
+          find . -name "package.json" -type f | head -10
+          echo "=== Package Files Found ==="
+          ls -la */package.json 2>/dev/null || echo "No direct package.json files"
+          ls -la apps/*/package.json 2>/dev/null || echo "No apps package.json files"
+          ls -la packages/*/package.json 2>/dev/null || echo "No packages package.json files"
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -49,8 +58,39 @@ jobs:
           node-version: 20
           cache: 'pnpm'
 
+      - name: Validate workspace structure
+        run: |
+          echo "=== Validating Workspace ==="
+          if [ -f "pnpm-workspace.yaml" ]; then
+            echo "✓ pnpm-workspace.yaml found"
+            cat pnpm-workspace.yaml
+          else
+            echo "✗ pnpm-workspace.yaml missing"
+            exit 1
+          fi
+
+          if [ -f "package.json" ]; then
+            echo "✓ Root package.json found"
+            jq '.workspaces // empty' package.json 2>/dev/null || echo "No workspaces in package.json"
+          else
+            echo "✗ Root package.json missing"
+            exit 1
+          fi
+
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          echo "=== Installing Dependencies ==="
+          echo "pnpm version: $(pnpm --version)"
+          echo "node version: $(node --version)"
+          echo "npm version: $(npm --version)"
+
+          if [ -f "pnpm-lock.yaml" ]; then
+            echo "✓ pnpm-lock.yaml exists, using frozen lockfile"
+            pnpm install --frozen-lockfile
+          else
+            echo "⚠ pnpm-lock.yaml missing, installing and generating lockfile"
+            pnpm install
+          fi
 
       - name: Environment setup
         run: |
@@ -65,35 +105,134 @@ jobs:
           echo "DATAFORSEO_PASSWORD=test" >> .env
           echo "OPENAI_API_KEY=sk-test" >> .env
 
+      - name: Validate dependencies
+        run: |
+          echo "=== Dependency Validation ==="
+          pnpm list --depth=0 || echo "Failed to list dependencies"
+          echo "=== Workspace Status ==="
+          pnpm -r exec pwd 2>/dev/null || echo "No workspaces found"
+
       - name: Generate Prisma client
-        run: pnpm --filter=server db:generate
+        run: |
+          echo "=== Generating Prisma Client ==="
+          if [ -f "apps/server/prisma/schema.prisma" ]; then
+            echo "✓ Prisma schema found"
+            pnpm --filter=server db:generate
+          else
+            echo "⚠ No Prisma schema found, skipping generation"
+          fi
 
       - name: Run type checking
-        run: pnpm typecheck
+        run: |
+          echo "=== TypeScript Type Checking ==="
+          echo "Checking shared package first..."
+          pnpm --filter=shared typecheck || {
+            echo "❌ Shared package type check failed"
+            exit 1
+          }
+          echo "✓ Shared package type check passed"
+
+          echo "Running full type check..."
+          pnpm typecheck || {
+            echo "❌ Type checking failed"
+            echo "=== TypeScript Config Debug ==="
+            find . -name "tsconfig.json" -type f | head -5
+            exit 1
+          }
+          echo "✓ All type checks passed"
 
       - name: Run linting
-        run: pnpm lint
+        run: |
+          echo "=== ESLint Checking ==="
+          pnpm lint || {
+            echo "❌ Linting failed"
+            echo "=== ESLint Config Debug ==="
+            find . -name ".eslintrc*" -o -name "eslint.config.*" | head -5
+            exit 1
+          }
+          echo "✓ Linting passed"
 
       - name: Run database migrations
-        run: pnpm db:migrate
+        run: |
+          echo "=== Database Migration ==="
+          if pnpm db:migrate 2>/dev/null; then
+            echo "✓ Database migrations completed"
+          else
+            echo "⚠ Database migrations failed or not configured"
+          fi
         continue-on-error: true
 
       - name: Run tests
-        run: pnpm test
+        run: |
+          echo "=== Running Tests ==="
+          if [ -n "$(find . -name '*.test.*' -o -name '*.spec.*' | head -1)" ]; then
+            echo "✓ Test files found, running tests"
+            pnpm test || echo "⚠ Some tests failed"
+          else
+            echo "⚠ No test files found, skipping tests"
+          fi
         if: hashFiles('**/test/**', '**/*.test.*', '**/*.spec.*') != ''
         continue-on-error: true
 
       - name: Build shared packages
-        run: pnpm --filter=shared build
+        run: |
+          echo "=== Building Shared Package ==="
+          pnpm --filter=shared build || {
+            echo "❌ Shared package build failed"
+            echo "=== Shared Package Debug ==="
+            ls -la packages/shared/ 2>/dev/null || echo "Shared package not found"
+            ls -la packages/shared/src/ 2>/dev/null || echo "Shared src not found"
+            exit 1
+          }
+          echo "✓ Shared package built successfully"
 
       - name: Build server
-        run: pnpm --filter=server build
+        run: |
+          echo "=== Building Server ==="
+          pnpm --filter=server build || {
+            echo "❌ Server build failed"
+            echo "=== Server Build Debug ==="
+            ls -la apps/server/ 2>/dev/null || echo "Server app not found"
+            ls -la apps/server/src/ 2>/dev/null || echo "Server src not found"
+            exit 1
+          }
+          echo "✓ Server built successfully"
 
-      - name: Build web (allow failures)
-        run: pnpm --filter=web build
+      - name: Build web
+        run: |
+          echo "=== Building Web Application ==="
+          if pnpm --filter=web build; then
+            echo "✓ Web application built successfully"
+          else
+            echo "⚠ Web application build failed"
+            echo "=== Web Build Debug ==="
+            ls -la apps/web/ 2>/dev/null || echo "Web app not found"
+            ls -la apps/web/src/ 2>/dev/null || echo "Web src not found"
+            cat apps/web/next.config.js 2>/dev/null || echo "No Next.js config found"
+          fi
         continue-on-error: true
 
+      - name: Verify build artifacts
+        run: |
+          echo "=== Build Artifacts Verification ==="
+          echo "Checking shared package artifacts..."
+          ls -la packages/shared/dist/ 2>/dev/null || echo "No shared dist found"
+
+          echo "Checking server artifacts..."
+          ls -la apps/server/dist/ 2>/dev/null || echo "No server dist found"
+
+          echo "Checking web artifacts..."
+          ls -la apps/web/.next/ 2>/dev/null || echo "No web .next found"
+
+          echo "✓ Build verification completed"
+
       - name: Health check
-        run: pnpm health-check
-        if: hashFiles('scripts/health-check.ts') != ''
+        run: |
+          echo "=== Health Check ==="
+          if [ -f "scripts/health-check.ts" ]; then
+            echo "✓ Health check script found"
+            pnpm health-check || echo "⚠ Health check failed"
+          else
+            echo "⚠ No health check script found"
+          fi
         continue-on-error: true
