@@ -15,7 +15,7 @@
     "clean": "rm -rf dist && rm -rf .turbo"
   },
   "dependencies": {
-    "zod": "^3.22.4"
+    "zod": "^4.1.11"
   },
   "devDependencies": {
     "@seo-portal/eslint-config": "workspace:*",
